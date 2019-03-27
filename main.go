@@ -15,10 +15,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/calebhailey/snmptrapd2sensu/config"
-	"github.com/calebhailey/snmptrapd2sensu/parsers"
-	snmptypes "github.com/calebhailey/snmptrapd2sensu/types"
-	"github.com/calebhailey/snmptrapd2sensu/utils"
+	"github.com/sensu/snmptrapd2sensu/config"
+	"github.com/sensu/snmptrapd2sensu/parsers"
+	snmptypes "github.com/sensu/snmptrapd2sensu/types"
+	"github.com/sensu/snmptrapd2sensu/utils"
 
 	"github.com/sensu/sensu-go/types"
 )

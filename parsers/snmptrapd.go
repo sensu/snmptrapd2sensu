@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	snmptypes "github.com/calebhailey/snmptrapd2sensu/types"
+	snmptypes "github.com/sensu/snmptrapd2sensu/types"
 )
 
 func parseVarbind(varbind string) *snmptypes.SnmptrapdNotificationVarbind {
