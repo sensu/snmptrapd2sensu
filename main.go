@@ -14,7 +14,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"regexp"
 	"strings"
 
 	"github.com/sensu/sensu-go/types"
