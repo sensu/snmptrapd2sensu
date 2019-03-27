@@ -11,6 +11,18 @@ a Sensu Agent HTTP API (`POST /events`).
 1. Download the `snmptrapd2sensu` tarball, install the binary on the system at
    `/usr/bin/snmptrapd2sensu`.
 
+   ```
+   $ curl -LO https://github.com/sensu/snmptrapd2sensu/releases/download/0.1/snmptrapd2sensu_0.1_linux_amd64.tar.gz
+   $ tar -xzf snmptrapd2sensu_0.1_linux_amd64.tar.gz
+   $ cp snmptrapd2sensu /usr/bin/
+   $ rm snmptrapd2sensu_0.1_linux_amd64.tar.gz
+   ```
+
+   _NOTE: see [here][releases] for binaries for other platforms and/or system
+   architectures (e.g. linux 32-bit, linux ARM, freebsd, macos, etc)._
+
+   [releases]: https://github.com/sensu/snmptrapd2sensu/releases
+
 ## Configuration
 
 1. Configure `snmptrapd2sensu`.
