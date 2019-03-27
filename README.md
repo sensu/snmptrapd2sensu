@@ -78,8 +78,57 @@ a Sensu Agent HTTP API (`POST /events`).
 
   ```
   $ sudo /usr/sbin/snmptrapd -c /etc/snmp/snmptrapd.conf -f -Lo
+  NET-SNMP version 5.6.2.1
+
+  SNMPv2-MIB::snmpTrapOID.0 = OID: NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatNotification     NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatRate = INTEGER: 123456
+
+  2019/03/27 12:16:29 INFO: Parsing notification HOSTNAME: localhost
+  2019/03/27 12:16:29 INFO: Parsing notification IPADDRESS: UDP: [127.0.0.1]:64983->[0.0.0.0]:0
+  2019/03/27 12:16:29 INFO: Parsing notification VARBIND(1): SNMPv2-MIB::snmpTrapOID.0 NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatNotification
+  2019/03/27 12:16:29 INFO: Parsing notification VARBIND(2): NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatRate 123456
+  2019/03/27 12:16:29 INFO: Found required SNMP Trap OID: SNMPv2-MIB::snmpTrapOID.0!
+  2019/03/27 12:16:29 INFO: Sensu Event JSON output:
+  {
+    "check": {
+      "handlers": [],
+      "high_flap_threshold": 0,
+      "interval": 1,
+      "low_flap_threshold": 0,
+      "publish": false,
+      "runtime_assets": null,
+      "subscriptions": [],
+      "proxy_entity_name": "",
+      "check_hooks": null,
+      "stdin": false,
+      "subdue": null,
+      "ttl": 0,
+      "timeout": 0,
+      "round_robin": false,
+      "executed": 0,
+      "history": null,
+      "issued": 0,
+      "output": "{\n  \"NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatRate\": \"123456\",\n  \"SNMPv2-MIB::snmpTrapOID.0\": \"NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatNotification\"\n}",
+      "status": 1,
+      "total_state_change": 0,
+      "last_ok": 0,
+      "occurrences": 0,
+      "occurrences_watermark": 0,
+      "output_metric_format": "",
+      "output_metric_handlers": null,
+      "env_vars": null,
+      "metadata": {
+        "name": "NET-SNMP-EXAMPLES-MIB--netSnmpExampleHeartbeatNotification",
+        "namespace": "default",
+        "annotations": {
+          "snmp_SNMPv2-MIB--snmpTrapOID-0": "NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatNotification",
+          "snmp_NET-SNMP-EXAMPLES-MIB--netSnmpExampleHeartbeatRate": "123456"
+        }
+      }
+    },
+    "metadata": {}
+  }
   ```
 
-  _NOTE: if properly configure, `snmptrapd` will handle the translation of OIDs
+  _NOTE: if properly configured, `snmptrapd` will handle the translation of OIDs
   to their descriptive names as found in a MIB file; see `snmptrapd -h` for more
   information on how to configure `snmptrapd` to read MIB files._
