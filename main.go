@@ -57,7 +57,7 @@ var (
 		"iso.3.6.1.6.3.1.1.4.1.0",
 		"SNMPv2-MIB::snmpTrapOID.0",
 	}
-	settings              *config.Settings = config.LoadConfig("./snmptrapd2sensu.json")
+	settings              *config.Settings = config.LoadConfig("/etc/sensu/snmptrapd2sensu.json")
 	SnmpDefaultHostname   string           = settings.Snmptrapd.Defaults.Device.Host
 	SnmpDefaultTrapName   string           = settings.Snmptrapd.Defaults.Trap.Name
 	SensuNamespace        string           = settings.Sensu.Check.Namespace
