@@ -17,28 +17,11 @@ import (
 	"strings"
 
 	"github.com/calebhailey/snmptrapd2sensu/config"
+	snmptypes "github.com/calebhailey/snmptrapd2sensu/types"
+	"github.com/calebhailey/snmptrapd2sensu/utils"
+
 	"github.com/sensu/sensu-go/types"
 )
-
-type SnmptrapdNotificationVarbind struct {
-	OID   string `json:"oid"`
-	Value string `json:"value"`
-	Type  string `json:"type"`
-}
-
-type SnmptrapdNotificationIpAddress struct {
-	Protocol   string `json:"protocol"`
-	SourceIP   string `json:"source_ip"`
-	SourcePort string `json:"source_port"`
-	TargetIP   string `json:"target_ip"`
-	TargetPort string `json:"target_port"`
-}
-
-type SnmptrapdNotification struct {
-	HOSTNAME  string                          `json:"hostname"`
-	IPADDRESS *SnmptrapdNotificationIpAddress `json:"ipaddress"`
-	VARBINDS  []*SnmptrapdNotificationVarbind `json:"varbinds"`
-}
 
 var (
 	SystemUptimeOIDs = []string{
@@ -66,42 +49,14 @@ var (
 	SensuCheckLabelPrefix string           = settings.Sensu.Check.LabelPrefix
 )
 
-func getenv(key string, fallback string) string {
-	value := os.Getenv(key)
-	if len(value) == 0 {
-		return fallback
-	}
-	return value
-}
-
-func indexOf(s []string, k string) int {
-	// return the []string slice index value of the first occurence of key (k).
-	for i, v := range s {
-		if v == k {
-			return i
-		}
-	}
-	return -1
-}
-
-func (object *SnmptrapdNotification) String() string {
-	var output strings.Builder
-	fmt.Fprintf(&output, "HOSTNAME: %v\n", object.HOSTNAME)
-	fmt.Fprintf(&output, "IPADDRESS: %v:%v\n", object.IPADDRESS.SourceIP, object.IPADDRESS.SourcePort)
-	for _, v := range object.VARBINDS {
-		fmt.Fprintf(&output, "VARBIND: %v: %v\n", v.OID, v.Value)
-	}
-	return output.String()
-}
-
-func parseVarbind(varbind string) *SnmptrapdNotificationVarbind {
+func parseVarbind(varbind string) *snmptypes.SnmptrapdNotificationVarbind {
 	// Parse an snmptrapd VARBIND (string) and return a SnmptrapdNotificationVarbind object.
 	//
-	var v *SnmptrapdNotificationVarbind
+	var v *snmptypes.SnmptrapdNotificationVarbind
 	var tokenSet []string
 
 	// Do some stuff.
-	v = new(SnmptrapdNotificationVarbind)
+	v = new(snmptypes.SnmptrapdNotificationVarbind)
 	tokenSet = strings.Fields(varbind)
 	v.OID = tokenSet[0]
 	v.Value = strings.Join(tokenSet[1:], " ")
@@ -109,17 +64,17 @@ func parseVarbind(varbind string) *SnmptrapdNotificationVarbind {
 	return v
 }
 
-func parseIpAddress(ipaddress string) *SnmptrapdNotificationIpAddress {
+func parseIpAddress(ipaddress string) *snmptypes.SnmptrapdNotificationIpAddress {
 	// parse an snmptrapd IPADDRESS (string) and retun a
 	// SnmptrapdNotificationIpAddress object.
 	//
-	var ip *SnmptrapdNotificationIpAddress
+	var ip *snmptypes.SnmptrapdNotificationIpAddress
 	var addresses []string
 	var tokenSet []string
 
 	// Do some stuff.
 	// UDP: [127.0.0.1]:57099->[127.0.0.1]:162
-	ip = new(SnmptrapdNotificationIpAddress)
+	ip = new(snmptypes.SnmptrapdNotificationIpAddress)
 	tokenSet = strings.Fields(ipaddress)
 	addresses = strings.Split(tokenSet[1], "->")
 
@@ -132,19 +87,19 @@ func parseIpAddress(ipaddress string) *SnmptrapdNotificationIpAddress {
 	return ip
 }
 
-func parseNotification(stdin *os.File) *SnmptrapdNotification {
+func parseNotification(stdin *os.File) *snmptypes.SnmptrapdNotification {
 	// parse the Notification (consumed via stdin) and return a
 	// SnmptrapdNotification object.
 	//
 	defer stdin.Close()
-	var n *SnmptrapdNotification
+	var n *snmptypes.SnmptrapdNotification
 	var row int
 
 	// Save the original notification message for later use.
 	// n.OriginalMessage = stdin
 
 	// Do some stuff.
-	n = new(SnmptrapdNotification)
+	n = new(snmptypes.SnmptrapdNotification)
 	scanner := bufio.NewScanner(stdin)
 	row = 0
 	for scanner.Scan() {
@@ -170,7 +125,7 @@ func parseNotification(stdin *os.File) *SnmptrapdNotification {
 	return n
 }
 
-func validateNotification(notification *SnmptrapdNotification) {
+func validateNotification(notification *snmptypes.SnmptrapdNotification) {
 	IpReplacer := strings.NewReplacer(".", "_")
 	switch notification.HOSTNAME {
 	case "<UNKONWN>":
@@ -180,13 +135,13 @@ func validateNotification(notification *SnmptrapdNotification) {
 	}
 }
 
-func getVarbind(notification *SnmptrapdNotification, oids []string) *SnmptrapdNotificationVarbind {
+func getVarbind(notification *snmptypes.SnmptrapdNotification, oids []string) *snmptypes.SnmptrapdNotificationVarbind {
 	// Lookup a VARBIND by OID from notification.VARBINDS
 	//
-	var varbind *SnmptrapdNotificationVarbind
+	var varbind *snmptypes.SnmptrapdNotificationVarbind
 
 	for i, v := range notification.VARBINDS {
-		index := indexOf(oids, v.OID)
+		index := utils.IndexOf(oids, v.OID)
 		if index >= 0 {
 			varbind = notification.VARBINDS[i]
 			break
@@ -197,7 +152,7 @@ func getVarbind(notification *SnmptrapdNotification, oids []string) *SnmptrapdNo
 	return varbind
 }
 
-func processNotification(notification *SnmptrapdNotification) {
+func processNotification(notification *snmptypes.SnmptrapdNotification) {
 	// Construct a Sensu Go Event from the parsed SnmptrapdNotification object,
 	// mapping the Notification attributes to the corresponding Event fields; then
 	// HTTP POST the event to a Sensu Agent HTTP API for processing.
@@ -271,7 +226,7 @@ func processNotification(notification *SnmptrapdNotification) {
 
 func main() {
 	var stdin *os.File
-	var notification *SnmptrapdNotification
+	var notification *snmptypes.SnmptrapdNotification
 
 	stdin = os.Stdin
 
