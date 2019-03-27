@@ -54,12 +54,18 @@ type Settings struct {
 func LoadConfig(filename string) *Settings {
 	var config *Settings
 	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatal("ERROR: ", err)
+	}
 	filebytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		log.Fatal("ERROR: ", err)
+	}
 	json.Unmarshal(filebytes, &config)
 
 	output, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("ERROR: ", err)
 	}
 	fmt.Println(string(output))
 	return config
