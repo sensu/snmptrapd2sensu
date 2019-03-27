@@ -1,0 +1,25 @@
+{
+  "snmptrapd": {
+    "defaults": {
+      "device": {
+        "host": "poop"
+      },
+      "trap": {
+        "name": "unknown-snmp-trap",
+        "status": 0
+      }
+    }
+  },
+  "sensu": {
+    "agent": {
+      "api": {
+        "host": "127.0.0.1",
+        "port": 3031
+      }
+    },
+    "check": {
+      "namespace": "default",
+      "label_prefix": "snmp"
+    }
+  }
+}

@@ -16,6 +16,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/calebhailey/snmptrapd2sensu/config"
 	"github.com/sensu/sensu-go/types"
 )
 
@@ -27,9 +28,9 @@ type SnmptrapdNotificationVarbind struct {
 
 type SnmptrapdNotificationIpAddress struct {
 	Protocol   string `json:"protocol"`
-	SourceHost string `json:"source_host"`
+	SourceIP   string `json:"source_ip"`
 	SourcePort string `json:"source_port"`
-	TargetHost string `json:"target_host"`
+	TargetIP   string `json:"target_ip"`
 	TargetPort string `json:"target_port"`
 }
 
@@ -56,12 +57,13 @@ var (
 		"iso.3.6.1.6.3.1.1.4.1.0",
 		"SNMPv2-MIB::snmpTrapOID.0",
 	}
-	SnmpDefaultHostname   string = getenv("SNMP_DEFAULT_HOSTNAME", "unknown-network-device")
-	SnmpDefaultTrapName   string = getenv("SNMP_DEFAULT_TRAP_NAME", "unknown-snmp-trap")
-	SensuNamespace        string = getenv("SENSU_NAMESPACE", "default")
-	SensuAgentApiHost     string = getenv("SENSU_AGENT_API_HOST", "127.0.0.1")
-	SensuAgentApiPort     string = getenv("SENSU_AGENT_API_PORT", "3031")
-	SensuCheckLabelPrefix string = getenv("SENSU_CHECK_LABEL_PREFIX", "snmp")
+	settings              *config.Settings = config.LoadConfig("./snmptrapd2sensu.json")
+	SnmpDefaultHostname   string           = settings.Snmptrapd.Defaults.Device.Host
+	SnmpDefaultTrapName   string           = settings.Snmptrapd.Defaults.Trap.Name
+	SensuNamespace        string           = settings.Sensu.Check.Namespace
+	SensuAgentApiHost     string           = settings.Sensu.Agent.API.Host
+	SensuAgentApiPort     int              = settings.Sensu.Agent.API.Port
+	SensuCheckLabelPrefix string           = settings.Sensu.Check.LabelPrefix
 )
 
 func getenv(key string, fallback string) string {
@@ -85,7 +87,7 @@ func indexOf(s []string, k string) int {
 func (object *SnmptrapdNotification) String() string {
 	var output strings.Builder
 	fmt.Fprintf(&output, "HOSTNAME: %v\n", object.HOSTNAME)
-	fmt.Fprintf(&output, "IPADDRESS: %v:%v\n", object.IPADDRESS.SourceHost, object.IPADDRESS.SourcePort)
+	fmt.Fprintf(&output, "IPADDRESS: %v:%v\n", object.IPADDRESS.SourceIP, object.IPADDRESS.SourcePort)
 	for _, v := range object.VARBINDS {
 		fmt.Fprintf(&output, "VARBIND: %v: %v\n", v.OID, v.Value)
 	}
@@ -122,9 +124,9 @@ func parseIpAddress(ipaddress string) *SnmptrapdNotificationIpAddress {
 	addresses = strings.Split(tokenSet[1], "->")
 
 	ip.Protocol = tokenSet[0]
-	ip.SourceHost = strings.TrimLeft(strings.Split(addresses[0], "]")[0], "[")
+	ip.SourceIP = strings.TrimLeft(strings.Split(addresses[0], "]")[0], "[")
 	ip.SourcePort = strings.Split(addresses[0], ":")[1]
-	ip.TargetHost = strings.TrimLeft(strings.Split(addresses[1], "]")[0], "[")
+	ip.TargetIP = strings.TrimLeft(strings.Split(addresses[1], "]")[0], "[")
 	ip.TargetPort = strings.Split(addresses[1], ":")[1]
 
 	return ip
@@ -133,28 +135,6 @@ func parseIpAddress(ipaddress string) *SnmptrapdNotificationIpAddress {
 func parseNotification(stdin *os.File) *SnmptrapdNotification {
 	// parse the Notification (consumed via stdin) and return a
 	// SnmptrapdNotification object.
-	//
-	// Details of the notification are fed to the program via its standard input.
-	// Note that this will always use the SNMPv2-style notification format, with
-	// SNMPv1 traps being converted as per RFC 2576, before being passed to the
-	// program. The input format is as follows, one entry per line:
-	//
-	// HOSTNAME
-	// The name of the host that sent the notification, as determined by
-	// gethostbyaddr(3).
-	//
-	// IPADDRESS
-	// The IP address of the host that sent the notification.
-	//
-	// VARBINDS
-	// A list of variable bindings describing the contents of the notification,
-	// one per line. The first token on each line (up until a space) is the OID of
-	// the varind, and the remainder of the line is its value. The format of both
-	// of these are controlled by the outputOption directive (or similar
-	// configuration). The first OID should always be SNMPv2-MIB::sysUpTime.0, and
-	// the second should be SNMPv2-MIB::snmpTrapOID.0. The remaining lines will
-	// contain the payload varbind list. For SNMPv1 traps, the final OID will be
-	// SNMPv2-MIB::snmpTrapEnterprise.0.
 	//
 	defer stdin.Close()
 	var n *SnmptrapdNotification
@@ -191,11 +171,12 @@ func parseNotification(stdin *os.File) *SnmptrapdNotification {
 }
 
 func validateNotification(notification *SnmptrapdNotification) {
+	IpReplacer := strings.NewReplacer(".", "_")
 	switch notification.HOSTNAME {
 	case "<UNKONWN>":
-		notification.HOSTNAME = SnmpDefaultHostname
+		notification.HOSTNAME = IpReplacer.Replace(notification.IPADDRESS.SourceIP)
 	case "\u003cUNKNOWN\u003e":
-		notification.HOSTNAME = SnmpDefaultHostname
+		notification.HOSTNAME = IpReplacer.Replace(notification.IPADDRESS.SourceIP)
 	}
 }
 
@@ -238,13 +219,13 @@ func processNotification(notification *SnmptrapdNotification) {
 	}
 	event.Check.Namespace = SensuNamespace
 	event.Check.Interval = 1
-	event.Check.Labels = make(map[string]string)
+	event.Check.Annotations = make(map[string]string)
 	for _, v := range notification.VARBINDS {
 		eventOutput[v.OID] = v.Value
 		OidReplacer := strings.NewReplacer(".", "-", ":", "-")
 		oid := OidReplacer.Replace(v.OID)
 		key := strings.Join([]string{SensuCheckLabelPrefix, oid}, "_")
-		event.Check.Labels[key] = v.Value
+		event.Check.Annotations[key] = v.Value
 	}
 	eventOutputJson, err := json.MarshalIndent(eventOutput, "", "  ")
 	if err != nil {
@@ -272,7 +253,7 @@ func processNotification(notification *SnmptrapdNotification) {
 	body := bytes.NewReader(postBody)
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("http://%s:%s/events", SensuAgentApiHost, SensuAgentApiPort),
+		fmt.Sprintf("http://%s:%v/events", SensuAgentApiHost, SensuAgentApiPort),
 		body,
 	)
 	if err != nil {
