@@ -19,7 +19,8 @@
     },
     "check": {
       "namespace": "default",
-      "label_prefix": "snmp"
+      "label_prefix": "snmp",
+      "status": 1
     }
   }
 }

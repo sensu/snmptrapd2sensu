@@ -36,13 +36,14 @@ type SensuAgentSettings struct {
 }
 
 type SensuCheckSettings struct {
-	Namespace string `json:"namespace"`
-  LabelPrefix string `json:"label_prefix"`
+	Namespace   string `json:"namespace"`
+	LabelPrefix string `json:"label_prefix"`
+	Status      int    `json:"status"`
 }
 
 type SensuSettings struct {
 	Agent SensuAgentSettings `json:"agent"`
-  Check SensuCheckSettings `json:"check"`
+	Check SensuCheckSettings `json:"check"`
 }
 
 type Settings struct {
@@ -62,5 +63,5 @@ func LoadConfig(filename string) *Settings {
 		log.Fatal(err)
 	}
 	fmt.Println(string(output))
-  return config
+	return config
 }
