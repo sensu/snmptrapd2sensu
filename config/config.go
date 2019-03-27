@@ -57,7 +57,6 @@ func LoadConfig(filename string) *Settings {
 	filebytes, err := ioutil.ReadAll(file)
 	json.Unmarshal(filebytes, &config)
 
-	fmt.Printf("default host: %s\n", config.Snmptrapd.Defaults.Device.Host)
 	output, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		log.Fatal(err)
