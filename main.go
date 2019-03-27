@@ -14,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/sensu/sensu-go/types"
@@ -191,7 +192,7 @@ func parseNotification(stdin *os.File) *SnmptrapdNotification {
 }
 
 func validateNotification(notification *SnmptrapdNotification) {
-	switch notification.IPADDRESS.SourceHost {
+	switch notification.HOSTNAME {
 	case "<UNKONWN>":
 		notification.HOSTNAME = SnmpDefaultHostname
 	case "\u003cUNKNOWN\u003e":
