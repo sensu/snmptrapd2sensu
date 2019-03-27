@@ -74,10 +74,9 @@ func getVarbind(notification *snmptypes.SnmptrapdNotification, oids []string) *s
 	return varbind
 }
 
-func processNotification(notification *snmptypes.SnmptrapdNotification) {
+func processNotification(notification *snmptypes.SnmptrapdNotification) *types.Event {
 	// Construct a Sensu Go Event from the parsed SnmptrapdNotification object,
-	// mapping the Notification attributes to the corresponding Event fields; then
-	// HTTP POST the event to a Sensu Agent HTTP API for processing.
+	// mapping the Notification attributes to the corresponding Event fields.
 	//
 	var event *types.Event
 	event = new(types.Event)
@@ -121,7 +120,10 @@ func processNotification(notification *snmptypes.SnmptrapdNotification) {
 		log.Fatal(err)
 	}
 	log.Printf("INFO: Sensu Event JSON output:\n%s\n", string(sensuEvent))
+	return event
+}
 
+func postEvent(event *types.Event) {
 	// Post the event to the Sensu Agent HTTP API
 	postBody, err := json.Marshal(event)
 	if err != nil {
@@ -149,10 +151,12 @@ func processNotification(notification *snmptypes.SnmptrapdNotification) {
 func main() {
 	var stdin *os.File
 	var notification *snmptypes.SnmptrapdNotification
+	var event *types.Event
 
 	stdin = os.Stdin
 
 	notification = parsers.ParseNotification(stdin)
 	validateNotification(notification)
-	processNotification(notification)
+	event = processNotification(notification)
+	postEvent(event)
 }
