@@ -194,6 +194,8 @@ func validateNotification(notification *SnmptrapdNotification) {
 	switch notification.IPADDRESS.SourceHost {
 	case "<UNKONWN>":
 		notification.HOSTNAME = SnmpDefaultHostname
+	case "\u003cUNKNOWN\u003e":
+		notification.HOSTNAME = SnmpDefaultHostname
 	}
 }
 
