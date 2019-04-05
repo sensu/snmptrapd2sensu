@@ -2,11 +2,10 @@
   "snmptrapd": {
     "defaults": {
       "device": {
-        "host": "poop"
+        "host": "unknown-snmp-device"
       },
       "trap": {
-        "name": "unknown-snmp-trap",
-        "status": 0
+        "name": "unknown-snmp-trap"
       }
     }
   },

@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -13,8 +12,7 @@ type SnmptrapdDeviceDefaults struct {
 }
 
 type SnmptrapdTrapDefaults struct {
-	Name   string `json:"name"`
-	Status int    `json:"status"`
+	Name string `json:"name"`
 }
 
 type SnmptrapdDefaults struct {
@@ -55,18 +53,20 @@ func LoadConfig(filename string) *Settings {
 	var config *Settings
 	file, err := os.Open(filename)
 	if err != nil {
-		log.Fatal("ERROR: ", err)
+		log.Fatalf("ERROR: %s\n", err)
 	}
 	filebytes, err := ioutil.ReadAll(file)
 	if err != nil {
-		log.Fatal("ERROR: ", err)
+		log.Fatalf("ERROR: %s\n", err)
 	}
-	json.Unmarshal(filebytes, &config)
-
-	output, err := json.MarshalIndent(config, "", "  ")
+	err = json.Unmarshal(filebytes, &config)
 	if err != nil {
-		log.Fatal("ERROR: ", err)
+		log.Fatalf("ERROR: %s\n", err)
 	}
-	fmt.Println(string(output))
+	// output, err := json.MarshalIndent(config, "", "  ")
+	// if err != nil {
+	// 	log.Fatalf("ERROR: %s\n", err)
+	// }
+	// log.Printf("Config:\n\n%s\n\n", string(output))
 	return config
 }

@@ -106,7 +106,7 @@ func processNotification(notification *snmptypes.SnmptrapdNotification) *types.E
 	}
 	eventOutputJson, err := json.MarshalIndent(eventOutput, "", "  ")
 	if err != nil {
-		log.Fatal("ERROR: ", err)
+		log.Fatalf("ERROR: %s\n", err)
 	}
 	event.Check.Output = string(eventOutputJson)
 	event.Check.Status = uint32(SensuCheckDefaultStatus)
@@ -119,7 +119,7 @@ func processNotification(notification *snmptypes.SnmptrapdNotification) *types.E
 
 	sensuEvent, err := json.MarshalIndent(event, "", "  ")
 	if err != nil {
-		log.Fatal("ERROR: ", err)
+		log.Fatalf("ERROR: %s\n", err)
 	}
 	log.Printf("INFO: Sensu Event JSON output:\n%s\n", string(sensuEvent))
 	return event
@@ -129,7 +129,7 @@ func postEvent(event *types.Event) {
 	// Post the event to the Sensu Agent HTTP API
 	postBody, err := json.Marshal(event)
 	if err != nil {
-		log.Fatal("ERROR: ", err)
+		log.Fatalf("ERROR: %s\n", err)
 	}
 	body := bytes.NewReader(postBody)
 	req, err := http.NewRequest(
@@ -138,12 +138,12 @@ func postEvent(event *types.Event) {
 		body,
 	)
 	if err != nil {
-		log.Fatal("ERROR: ", err)
+		log.Fatalf("ERROR: %s\n", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Fatal("ERROR: ", err)
+		log.Fatalf("ERROR: %s\n", err)
 	}
 	defer resp.Body.Close()
 	b, err := ioutil.ReadAll(resp.Body)
