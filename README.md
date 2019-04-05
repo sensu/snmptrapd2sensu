@@ -35,7 +35,7 @@ a Sensu Agent HTTP API (`POST /events`).
      "snmptrapd": {
        "defaults": {
          "device": {
-           "host": "poop"
+           "host": "unknown-snmp-device"
          },
          "trap": {
            "name": "unknown-snmp-trap",
