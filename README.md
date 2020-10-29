@@ -2,9 +2,8 @@
 
 ## Overview
 
-The `snmptrapd2sensu` utility is a NET-SNMP `snmptrapd` trap handler that takes
-notifications from `snmptrapd`, converts them to Sensu Events, and posts them to
-a Sensu Agent HTTP API (`POST /events`).
+The `snmptrapd2sensu` utility is a SNMP trap handler for Sensu Go that takes traps from NET-SNMP `snmptrapd`, converts them to Sensu Events, and posts them to
+a Sensu Agent HTTP API (`POST /events`). This allows Sensu Go to receive v1, v2c and v3 SNMP traps with the flexible net-snmp trap handler and treat them as Sensu events.
 
 ## Installation
 
