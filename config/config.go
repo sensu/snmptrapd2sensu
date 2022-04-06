@@ -34,9 +34,10 @@ type SensuAgentSettings struct {
 }
 
 type SensuCheckSettings struct {
-	Namespace   string `json:"namespace"`
-	LabelPrefix string `json:"label_prefix"`
-	Status      int    `json:"status"`
+	Namespace   string   `json:"namespace"`
+	LabelPrefix string   `json:"label_prefix"`
+	Status      int      `json:"status"`
+	Handlers    []string `json:"handlers"`
 }
 
 type SensuSettings struct {

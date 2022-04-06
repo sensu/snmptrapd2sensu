@@ -52,7 +52,11 @@ a Sensu Agent HTTP API (`POST /events`). This allows Sensu Go to receive v1, v2c
        "check": {
          "namespace": "default",
          "label_prefix": "snmp",
-         "status": 1
+         "status": 1,
+         "handlers": [
+           "email",
+           "pager"
+         ]
        }
      }
    }
