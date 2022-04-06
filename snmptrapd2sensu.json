@@ -19,7 +19,11 @@
     "check": {
       "namespace": "default",
       "label_prefix": "snmp",
-      "status": 1
+      "status": 1,
+      "handlers": [
+        "email",
+        "pager"
+      ]
     }
   }
 }

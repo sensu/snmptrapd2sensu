@@ -47,6 +47,7 @@ var SensuAgentApiHost string = settings.Sensu.Agent.API.Host
 var SensuAgentApiPort int = settings.Sensu.Agent.API.Port
 var SensuCheckLabelPrefix string = settings.Sensu.Check.LabelPrefix
 var SensuCheckDefaultStatus int = settings.Sensu.Check.Status
+var SensuCheckHandlers []string = settings.Sensu.Check.Handlers
 
 func validateNotification(notification *snmptypes.SnmptrapdNotification) {
 	IpReplacer := strings.NewReplacer(".", "_")
@@ -110,6 +111,7 @@ func processNotification(notification *snmptypes.SnmptrapdNotification) *types.E
 	}
 	event.Check.Output = string(eventOutputJson)
 	event.Check.Status = uint32(SensuCheckDefaultStatus)
+	event.Check.Handlers = SensuCheckHandlers
 
 	if notification.HOSTNAME != "localhost" {
 		event.Entity = new(types.Entity)
